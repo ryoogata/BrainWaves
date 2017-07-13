@@ -21,7 +21,8 @@ if ( file.exists(paste0("result/", RESULT_DF, ".data")) ) {
 #
 source("script/R/fun/Data-pre-processing.R")
 
-my_preProcess <- c("center", "scale")
+#my_preProcess <- c("center", "scale")
+my_preProcess <- NULL
 
 data_preProcess <- "none"
 
@@ -102,7 +103,7 @@ model_list <- caretList(
   x = TRAIN.TRAIN[,explanation_variable]
   ,y = TRAIN.TRAIN$response
   ,trControl = doParallel
-  #,preProcess = my_preProcess
+  ,preProcess = my_preProcess
   ,tuneList = list(
     fit = caretModelSpec(
       method = "ranger"
