@@ -212,7 +212,7 @@ sapply(out, function(x) sum(is.na(x)))
 # 予測データを保存
 for(NUM in 1:10){
   DATE <- format(jrvFinance::edate(from = Sys.Date(), 0), "%Y%m%d")
-  SUBMIT_FILENAME <- paste("./submit/submit_", DATE, "_", NUM, "_", PREPROCESS, "_ranger.csv", sep = "")
+  SUBMIT_FILENAME <- paste("./submit/submit_", DATE, "_", NUM, "_", PREPROCESS, "_", model_list[[1]]$method, ".csv", sep = "")
   
   if ( !file.exists(SUBMIT_FILENAME) ) {
     write.table(out, #出力データ
@@ -225,4 +225,3 @@ for(NUM in 1:10){
     break
   }
 }
-
