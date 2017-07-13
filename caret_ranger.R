@@ -116,6 +116,9 @@ model_list <- caretList(
   )
 )
 
+stopCluster(cl)
+registerDoSEQ()
+
 model_list[[1]]$times
 model_list[[1]]$finalModel
 
@@ -162,32 +165,18 @@ rsquaredSummary(data.frame(pred = pred_test.verification, obs = tp$obs))
 
 
 # 学習用データ全てを利用してデルを作成
-finalModel <- caretList(
-  x = TRAIN[,explanation_variable]
-  ,y = TRAIN$response
-  ,trControl = doParallel
-  #,preProcess = my_preProcess
-  ,tuneList = list(
-    fit = caretModelSpec(
-      method = "ranger"
-      ,metric = "Rsquared" 
-      ,tuneGrid = expand.grid(
-        mtry = model_list[[1]]$bestTune["mtry"]
+finalModel <- ranger(formula = as.formula(paste("response", "~" , paste(explanation_variable, collapse = "+")))
+      ,data = TRAIN
+      ,mtry = as.numeric(model_list[[1]]$bestTune["mtry"])
       )
-      ,importance = 'impurity'
-    )
-  )
-)
 
-stopCluster(cl)
-registerDoSEQ()
 
 #
 # 評価用データにモデルの当てはめ
 #
-if (is.null(finalModel[[1]]$preProcess)){
+if (is.null(model_list[[1]]$preProcess)){
   # preProcess を指定していない場合
-  pred_test <- predict(finalModel[[1]], TEST, type="raw")
+  pred_test <- predict(object = finalModel, data = TEST, type="response")["predictions"]
   
   PREPROCESS <- "no_preProcess"
 } else {
@@ -196,10 +185,11 @@ if (is.null(finalModel[[1]]$preProcess)){
       TEST
       ,method = my_preProcess
     ) %>%
-      predict(finalModel[[1]], ., type="raw")
+      predict(object = finalModel, data = ., type="response")["predictions"]
   
   PREPROCESS <- paste(my_preProcess, collapse = "_")
 }
+
 
 #submitの形式で出力(CSV)
 #データ加工
